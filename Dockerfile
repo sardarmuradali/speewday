@@ -1,6 +1,6 @@
 FROM php:8.2-cli
 
-# System dependencies (important for Laravel)
+# System dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev
 
-# Install PHP extensions required by Laravel
+# PHP extensions
 RUN docker-php-ext-install \
     pdo \
     pdo_mysql \
@@ -20,26 +20,26 @@ RUN docker-php-ext-install \
     exif \
     pcntl
 
-# Install Composer
+# Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# Working directory
 WORKDIR /app
 
-# Copy project files
+# Copy project
 COPY . .
 
-# Install Laravel dependencies
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Fix permissions (VERY IMPORTANT for storage & cache)
+# Permissions
 RUN chmod -R 775 storage bootstrap/cache
 
-# Clear Laravel cache (prevents many deploy issues)
-RUN php artisan optimize:clear
+# ❌ DO NOT RUN optimize:clear in build (THIS WAS ERROR)
+# RUN php artisan optimize:clear  ← removed
 
-# Expose Render port
+# Expose port
 EXPOSE 10000
 
-# Start Laravel using PUBLIC folder (FIXES 404 / Not Found issue)
+# Start Laravel using public folder (fixes Not Found)
 CMD php -S 0.0.0.0:10000 -t public
